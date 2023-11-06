@@ -69,7 +69,7 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
     private async Task ConcatMessagesAndSendToPinecone(List<TelegramMessageAzureTables> entries)
     {
         var data = string.Join("\n", entries.Select(FormatMessageEntry));
-        var vector = await _vectorFactory.Create(entries.Last().MessageId, data, new Dictionary<string, string>()
+        var vector = await _vectorFactory.Create(entries.First().MessageId, data, new Dictionary<string, string>()
         {
             { "text", data }
         });
