@@ -37,7 +37,7 @@ public class QueryChatCommandHandler : ICommandHandler
         var vector = await _vectorFactory.Create(request.Message.MessageId.ToString(), request.Message.Text,
             new Dictionary<string, string>());
 
-        var bestMatches = await _vectorRepository.Query(vector, 60);
+        var bestMatches = await _vectorRepository.Query(vector, 10);
 
         var llmResponse =
             await _llmQueryable.GetQueryResponse(request.Message.Argument, GetContextFromMatches(bestMatches));

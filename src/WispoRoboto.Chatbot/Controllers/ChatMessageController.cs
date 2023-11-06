@@ -14,22 +14,14 @@ namespace WispoRoboto.Chatbot.Controllers;
 public class ChatMessageController
 {
     private readonly ILogger<ChatMessageController> _logger;
-
-    private readonly IVectorFactory _vectorFactory;
-
-    private readonly IVectorRepository _vectorRepository;
-
     private readonly IMessageRepository _messageRepository;
 
     private readonly IEnumerable<ICommandHandler> _commandHandlers;
 
-    public ChatMessageController(ILogger<ChatMessageController> logger, IVectorFactory vectorFactory,
-        IVectorRepository vectorRepository, IEnumerable<ICommandHandler> commandHandlers,
+    public ChatMessageController(ILogger<ChatMessageController> logger, IEnumerable<ICommandHandler> commandHandlers,
         IMessageRepository messageRepository)
     {
         _logger = logger;
-        _vectorFactory = vectorFactory;
-        _vectorRepository = vectorRepository;
         _commandHandlers = commandHandlers;
         _messageRepository = messageRepository;
     }
@@ -54,7 +46,8 @@ public class ChatMessageController
             }
             else
             {
-                await StoreMessageInPineCone(telegramMessage);
+                await _messageRepository.Upsert(telegramMessage.Message);
+                await _messageRepository.IndexAsChunkedEmbedding(telegramMessage.Message);
             }
 
             var response = req.CreateResponse(HttpStatusCode.Accepted);
@@ -77,11 +70,5 @@ public class ChatMessageController
         }
 
         await handler.HandleMessage(telegramMessage);
-    }
-
-    private async Task StoreMessageInPineCone(TelegramRequest telegramMessage)
-    {
-        await _messageRepository.Upsert(telegramMessage.Message);
-        await _messageRepository.IndexAsChunkedEmbedding(telegramMessage.Message);
     }
 }

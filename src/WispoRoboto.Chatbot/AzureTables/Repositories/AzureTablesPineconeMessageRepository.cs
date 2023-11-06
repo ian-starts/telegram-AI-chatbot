@@ -41,7 +41,8 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
 
     public async Task IndexAsChunkedEmbedding(Message message, CancellationToken cancellationToken)
     {
-        var pages = _azureTableClient.QueryAsync<TelegramMessageAzureTables>(m => m.PartitionKey == message.Chat.Title, 100)
+        var pages = _azureTableClient
+            .QueryAsync<TelegramMessageAzureTables>(m => m.PartitionKey == message.Chat.Title, 100)
             .AsPages();
         var data = new List<TelegramMessageAzureTables>();
         await foreach (var page in pages)
@@ -49,7 +50,7 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
             data.AddRange(page.Values);
         }
 
-        if (data.Count >= 15 || DateTime.UtcNow - GetMostRecentEntry(data).Date > TimeSpan.FromHours(6))
+        if (data.Count >= 10 || DateTime.UtcNow - GetMostRecentEntry(data).Date > TimeSpan.FromHours(6))
         {
             await ConcatMessagesAndSendToPinecone(data);
             foreach (var telegramMessageAzureTables in data)
