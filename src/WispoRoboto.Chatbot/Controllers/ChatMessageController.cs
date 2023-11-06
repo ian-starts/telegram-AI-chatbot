@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using WispoRoboto.Chatbot.CommandHandlers.Contracts;
 using WispoRoboto.Chatbot.Extensions;
+using WispoRoboto.Chatbot.Telegram.Contracts;
 using WispoRoboto.Chatbot.Telegram.Models;
 using WispoRoboto.Chatbot.Vectors.Contracts;
 
@@ -18,15 +19,19 @@ public class ChatMessageController
 
     private readonly IVectorRepository _vectorRepository;
 
+    private readonly IMessageRepository _messageRepository;
+
     private readonly IEnumerable<ICommandHandler> _commandHandlers;
 
     public ChatMessageController(ILogger<ChatMessageController> logger, IVectorFactory vectorFactory,
-        IVectorRepository vectorRepository, IEnumerable<ICommandHandler> commandHandlers)
+        IVectorRepository vectorRepository, IEnumerable<ICommandHandler> commandHandlers,
+        IMessageRepository messageRepository)
     {
         _logger = logger;
         _vectorFactory = vectorFactory;
         _vectorRepository = vectorRepository;
         _commandHandlers = commandHandlers;
+        _messageRepository = messageRepository;
     }
 
     [Function("ChatMessage")]
@@ -76,28 +81,7 @@ public class ChatMessageController
 
     private async Task StoreMessageInPineCone(TelegramRequest telegramMessage)
     {
-        var vectorMessage = FormatAsVectorMessage(telegramMessage);
-        var vector = await _vectorFactory.Create(telegramMessage.Message.MessageId.ToString(),
-            vectorMessage,
-            new Dictionary<string, string>
-            {
-                { "text", vectorMessage },
-                { "from", $"{telegramMessage.Message.From.FirstName} {telegramMessage.Message.From.LastName}" },
-                { "chatName", telegramMessage.Message.Chat.Title }
-            });
-
-        await _vectorRepository.Upsert(new[] { vector });
-    }
-
-    private string FormatAsVectorMessage(TelegramRequest request)
-    {
-        return
-            $"""
-             ChatMessage
-             from: {request.Message.From.FirstName} {request.Message.From.LastName}
-             chat title: {request.Message.Chat.Title}
-             date: {request.Message.Date.UnixTimestampToDateTime():s}
-             message: {request.Message.Text}
-             """;
+        await _messageRepository.Upsert(telegramMessage.Message);
+        await _messageRepository.IndexAsChunkedEmbedding(telegramMessage.Message);
     }
 }

@@ -1,13 +1,18 @@
+using Azure.Data.Tables;
+using Azure.Identity;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenAI_API;
 using Pinecone;
 using Telegram.Bot;
+using WispoRoboto.Chatbot.AzureTables.Repositories;
 using WispoRoboto.Chatbot.CommandHandlers;
 using WispoRoboto.Chatbot.CommandHandlers.Contracts;
 using WispoRoboto.Chatbot.LLM;
 using WispoRoboto.Chatbot.LLM.Contracts;
+using WispoRoboto.Chatbot.Telegram.Contracts;
 using WispoRoboto.Chatbot.Vectors;
 using WispoRoboto.Chatbot.Vectors.Contracts;
 
@@ -28,6 +33,11 @@ var host = new HostBuilder()
             new TelegramBotClient(hostContext.Configuration.GetValue<string>("Telegram_ApiKey")));
         s.AddScoped<ILLMQueryable, ChatGpt4Handler>();
         s.AddTransient<ICommandHandler, QueryChatCommandHandler>();
+        s.AddSingleton<TableClient>(_ =>
+            new TableClient(new Uri(hostContext.Configuration.GetValue<string>("StorageAccount_URL")),
+                "TelegramMessages",
+                new DefaultAzureCredential()));
+        s.AddTransient<IMessageRepository, AzureTablesPineconeMessageRepository>();
     })
     .Build();
 

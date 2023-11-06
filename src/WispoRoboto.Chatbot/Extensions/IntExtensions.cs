@@ -6,7 +6,7 @@ public static class IntExtensions
     {
         // Unix timestamp is seconds past epoch
         var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        dateTime = dateTime.AddSeconds(unixTimestamp).ToLocalTime();
+        dateTime = dateTime.AddSeconds(unixTimestamp);
         return dateTime;
     }
 }
