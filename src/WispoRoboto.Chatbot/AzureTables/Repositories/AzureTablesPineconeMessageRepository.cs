@@ -50,7 +50,7 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
             data.AddRange(page.Values);
         }
 
-        if (data.Count >= 10 || DateTime.UtcNow - GetMostRecentEntry(data).Date > TimeSpan.FromHours(6))
+        if (data.Count >= 5 || DateTime.UtcNow - GetMostRecentEntry(data).Date > TimeSpan.FromHours(6))
         {
             await ConcatMessagesAndSendToPinecone(data);
             foreach (var telegramMessageAzureTables in data)
@@ -69,7 +69,11 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
 
     private async Task ConcatMessagesAndSendToPinecone(List<TelegramMessageAzureTables> entries)
     {
-        var data = string.Join("\n", entries.Select(FormatMessageEntry));
+        var data = $"""
+                    ChatInteraction:
+                    StartDate: {entries.First().Date:s}
+                    {string.Join("\n", entries.Select(FormatMessageEntry))}
+                    """;
         var vector = await _vectorFactory.Create(entries.First().MessageId, data, new Dictionary<string, string>()
         {
             { "text", data }
@@ -80,10 +84,7 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
     private string FormatMessageEntry(TelegramMessageAzureTables message)
     {
         return $"""
-                ChatMessage
                 from: {message.From}
-                chat title: {message.ChatTitle}
-                date: {message.Date:s}
                 message: {message.Text}
                 """;
     }
