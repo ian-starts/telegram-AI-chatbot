@@ -29,7 +29,7 @@ public class ChatGpt4Handler : ILLMQueryable
         {
             new(ChatMessageRole.System, systemPrompt),
             new(ChatMessageRole.User, query)
-        }, model: Model.GPT4);
+        }, model: "gpt-4-1106-preview");
 
         return resp.Choices[0].Message.Content;
     }

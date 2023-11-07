@@ -50,14 +50,25 @@ public class AzureTablesPineconeMessageRepository : IMessageRepository
             data.AddRange(page.Values);
         }
 
-        if (data.Count >= 5 || DateTime.UtcNow - GetMostRecentEntry(data).Date > TimeSpan.FromHours(6))
+        if (ShouldEntriesBeIndexedToPinecone(data))
         {
             await ConcatMessagesAndSendToPinecone(data);
-            foreach (var telegramMessageAzureTables in data)
-            {
-                await _azureTableClient.DeleteEntityAsync(telegramMessageAzureTables.PartitionKey,
-                    telegramMessageAzureTables.RowKey, cancellationToken: cancellationToken);
-            }
+            await DeleteEntriesFromAzureTables(data, cancellationToken);
+        }
+    }
+
+    private bool ShouldEntriesBeIndexedToPinecone(List<TelegramMessageAzureTables> data)
+    {
+        return data.Count >= 5 || DateTime.UtcNow - GetMostRecentEntry(data).Date > TimeSpan.FromHours(6);
+    }
+
+    private async Task DeleteEntriesFromAzureTables(List<TelegramMessageAzureTables> data,
+        CancellationToken cancellationToken)
+    {
+        foreach (var telegramMessageAzureTables in data)
+        {
+            await _azureTableClient.DeleteEntityAsync(telegramMessageAzureTables.PartitionKey,
+                telegramMessageAzureTables.RowKey, cancellationToken: cancellationToken);
         }
     }
 
