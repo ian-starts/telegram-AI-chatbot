@@ -28,6 +28,7 @@ public class ChatGpt4Handler : ILLMQueryable
         var resp = await _openAiapi.Chat.CreateChatCompletionAsync(new List<ChatMessage>()
         {
             new(ChatMessageRole.System, systemPrompt),
+            new(ChatMessageRole.System, "If the context does not provide an answer, do your best to answer using your knowledge as an LLM."),
             new(ChatMessageRole.User, query)
         }, model: "gpt-4-1106-preview");
 
