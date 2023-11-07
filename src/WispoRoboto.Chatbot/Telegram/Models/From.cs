@@ -11,11 +11,8 @@ public class From
     public bool IsBot { get; set; }
 
     [JsonPropertyName("first_name")]
-    public string FirstName { get; set; }
+    public required string FirstName { get; set; }
 
     [JsonPropertyName("last_name")]
-    public string LastName { get; set; }
-
-    [JsonPropertyName("username")]
-    public string Username { get; set; }
+    public required string LastName { get; set; }
 }

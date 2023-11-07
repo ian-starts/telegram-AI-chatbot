@@ -5,15 +5,20 @@ namespace WispoRoboto.Chatbot.Telegram.Models;
 
 public class Message
 {
-    [JsonPropertyName("message_id")] public required long MessageId { get; set; }
+    [JsonPropertyName("message_id")]
+    public required long MessageId { get; set; }
 
-    [JsonPropertyName("from")] public required From From { get; set; }
+    [JsonPropertyName("from")]
+    public required From From { get; set; }
 
-    [JsonPropertyName("chat")] public required Chat Chat { get; set; }
+    [JsonPropertyName("chat")]
+    public required Chat Chat { get; set; }
 
-    [JsonPropertyName("date")] public required int Date { get; set; }
+    [JsonPropertyName("date")]
+    public required int Date { get; set; }
 
-    [JsonPropertyName("text")] public required string Text { get; set; }
+    [JsonPropertyName("text")]
+    public required string Text { get; set; }
 
     public bool IsCommand => Text.StartsWith("/");
 
@@ -45,6 +50,7 @@ public class Message
             {
                 return "";
             }
+
             return matches.First().Groups.Count < 3 ? "" : matches.First().Groups[2].Value;
         }
     }
