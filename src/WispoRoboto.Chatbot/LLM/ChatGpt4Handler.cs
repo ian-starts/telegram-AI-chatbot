@@ -28,7 +28,6 @@ public class ChatGpt4Handler : ILLMQueryable
         var resp = await _openAiapi.Chat.CreateChatCompletionAsync(new List<ChatMessage>()
         {
             new(ChatMessageRole.System, systemPrompt),
-            new(ChatMessageRole.System, "Write your responses in a similar style to the messages in the context."),
             new(ChatMessageRole.User, query)
         }, model: "gpt-4-1106-preview");
 
